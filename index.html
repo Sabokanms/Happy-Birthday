@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff8ef">
+  <title>Маленькое чудо для тебя</title>
+  <style>
+    :root {
+      --ink: #332a45;
+      --muted: #82788c;
+      --pink: #ed7792;
+      --pink-dark: #d95679;
+      --lilac: #b6a2e9;
+      --cream: #fff8ef;
+      --paper: rgba(255,255,255,.88);
+      --shadow: 0 24px 80px rgba(82, 54, 89, .12);
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html { min-height: 100%; background: var(--cream); }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+      background:
+        radial-gradient(ellipse at 14% 8%, rgba(255, 220, 203, .67), transparent 35%),
+        radial-gradient(ellipse at 88% 86%, rgba(215, 204, 255, .58), transparent 34%),
+        linear-gradient(145deg, #fffaf3, #fff3f4 58%, #f8f3ff);
+      overflow-x: hidden;
+    }
+    button, input { font: inherit; }
+    button { -webkit-tap-highlight-color: transparent; }
+    .page { min-height: 100svh; display: grid; place-items: center; padding: 32px 20px; position: relative; isolation: isolate; }
+    .ambient { position: fixed; z-index: -1; border-radius: 50%; filter: blur(1px); pointer-events: none; opacity: .65; }
+    .ambient.one { width: 190px; height: 190px; top: 9%; left: -80px; background: #ffe3b9; }
+    .ambient.two { width: 240px; height: 240px; bottom: -90px; right: 3%; background: #e4dcff; }
+    .entry-card {
+      width: min(100%, 960px); min-height: 560px; overflow: hidden; position: relative;
+      display: grid; grid-template-columns: 1fr; place-items: center; isolation: isolate; border: 1px solid rgba(255,255,255,.9);
+      border-radius: 34px; background: var(--paper); box-shadow: var(--shadow);
+      animation: arrive .75s cubic-bezier(.2,.75,.25,1) both;
+    }
+    .entry-copy { width: min(100%, 630px); padding: clamp(34px, 6vw, 66px); align-self: center; position: relative; z-index: 1; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; color: var(--pink-dark); font-size: 12px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+    .eyebrow::before { content: ""; width: 24px; height: 1px; background: currentColor; }
+    h1, h2, p { margin-top: 0; }
+    .entry-copy h1 { max-width: 440px; margin: 20px 0 13px; font-family: Georgia, "Times New Roman", serif; font-size: clamp(40px, 5vw, 62px); line-height: .99; font-weight: 500; letter-spacing: -.045em; }
+    .entry-copy h1 em { color: var(--pink-dark); font-weight: 500; }
+    .intro { color: var(--muted); max-width: 365px; line-height: 1.65; font-size: 15px; margin-bottom: 29px; }
+    .birthday-form { width: min(100%, 380px); }
+    .field-label { display: block; margin: 0 0 8px; color: #655b73; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .name-input, .date-input { width: 100%; height: 49px; border: 1px solid #eee4ec; border-radius: 13px; padding: 0 15px; outline: none; color: var(--ink); background: rgba(255,255,255,.86); transition: border-color .2s, box-shadow .2s; }
+    .name-input::placeholder { color: #b5adba; }
+    .name-input:focus, .date-input:focus { border-color: #d99aad; box-shadow: 0 0 0 4px rgba(237,119,146,.12); }
+    .date-label { margin-top: 18px; }
+    .date-row { display: grid; grid-template-columns: .8fr 1.3fr 1fr; gap: 9px; }
+    .date-input { appearance: none; padding: 0 10px; font-size: 14px; }
+    .form-error { min-height: 21px; margin: 7px 1px 1px; color: #c14e69; font-size: 12px; }
+    .primary-btn { display: flex; align-items: center; justify-content: center; gap: 11px; border: 0; border-radius: 14px; width: 100%; min-height: 52px; padding: 0 20px; color: white; font-weight: 800; background: linear-gradient(105deg, #e76f8c, #ce6eb1); box-shadow: 0 12px 24px rgba(211, 99, 145, .24); cursor: pointer; transition: transform .2s, box-shadow .2s, filter .2s; }
+    .primary-btn:hover { transform: translateY(-2px); box-shadow: 0 15px 28px rgba(211, 99, 145, .3); filter: saturate(1.07); }
+    .primary-btn:active { transform: translateY(0); }
+    .primary-btn span { font-size: 18px; }
+    .privacy-note { margin: 12px 0 0; color: #a29aa7; font-size: 11px; text-align: center; }
+    .entry-art { position: absolute; z-index: 0; inset: 0; overflow: hidden; background: radial-gradient(ellipse at 82% 52%, rgba(255,116,157,.28), transparent 37%), radial-gradient(ellipse at 20% 84%, rgba(255,188,77,.2), transparent 32%), linear-gradient(140deg,rgba(255,162,183,.12),rgba(161,126,226,.18)); opacity: .72; pointer-events: none; }
+    .art-glow { display: none; }
+    .art-note { position: absolute; z-index: 2; top: 38px; right: 34px; padding: 11px 16px; border-radius: 30px; color: #70405e; background: #ffd36b; font-family: Georgia,serif; font-size: 15px; transform: rotate(5deg); }
+    .cake { position: absolute; z-index: 1; top: 50%; right: 7%; width: 270px; height: 290px; margin: 0; transform: translateY(-50%); animation: cake-bob 3.8s ease-in-out infinite; }
+    .cake-plate { position: absolute; left: 15px; bottom: 27px; width: 240px; height: 24px; border-radius: 50%; background: #9451bc; box-shadow: 0 9px 0 #713993; }
+    .cake-base { position: absolute; left: 42px; bottom: 51px; width: 184px; height: 93px; border-radius: 18px 18px 28px 28px; background: repeating-linear-gradient(90deg,#f04f80 0 27px,#ff8ca2 27px 54px); box-shadow: inset 0 -12px 0 rgba(157,42,93,.16); }
+    .cake-top { position: absolute; left: 33px; bottom: 126px; width: 202px; height: 72px; border-radius: 50% 50% 18px 18px / 55% 55% 18px 18px; background: #ffc64d; border-bottom: 12px solid #ff7797; }
+    .icing { position: absolute; bottom: 181px; left: 56px; width: 158px; height: 25px; border-radius: 50%; background: #ffdc69; }
+    .icing::before, .icing::after { content: ""; position: absolute; top: 14px; width: 15px; height: 23px; border-radius: 0 0 10px 10px; background: #ffdc69; }
+    .icing::before { left: 31px; height: 31px; }.icing::after { right: 29px; height: 28px; }
+    .candle { position: absolute; z-index: 1; bottom: 201px; left: 127px; width: 13px; height: 48px; border-radius: 5px; background: repeating-linear-gradient(135deg,#9e67d0 0 6px,#ffe06b 6px 12px); }
+    .flame { position: absolute; left: 128px; bottom: 248px; width: 12px; height: 19px; border-radius: 70% 35% 70% 35%; background: #ffb54f; transform: rotate(45deg); box-shadow: 0 0 18px #ffcb76; animation: flicker .8s ease-in-out infinite alternate; }
+    .berry { position: absolute; z-index: 2; bottom: 164px; width: 19px; height: 19px; border-radius: 50%; background: #d96991; box-shadow: inset -4px -4px 0 rgba(117,45,87,.12); }
+    .berry::before { content: "✦"; color: #f7d779; font-size: 9px; position: absolute; top: 2px; left: 5px; }
+    .berry.b1 { left: 78px; }.berry.b2 { left: 126px; bottom: 171px; }.berry.b3 { left: 177px; }
+    .orbit { position: absolute; z-index: 2; font-size: 35px; filter: saturate(1.35) drop-shadow(0 5px 6px rgba(111,78,114,.18)); animation: drift 4s ease-in-out infinite; }
+    .orbit.bunny { left: 8%; bottom: 17%; transform: rotate(-9deg); }.orbit.bear { right: 8%; bottom: 21%; animation-delay: -.9s; }.orbit.bird { left: 17%; top: 19%; animation-delay: -1.7s; }.orbit.heart { right: 16%; top: 24%; color: #e77a9b; font-size: 29px; animation-delay: -.5s; }
+    .sprinkle { position: absolute; color: #d89a63; font-size: 17px; animation: twinkle 2.2s ease-in-out infinite; }.s1{top:22%;right:27%}.s2{top:50%;left:12%;animation-delay:-1s}.s3{bottom:16%;right:24%;animation-delay:-.6s}.s4{top:15%;left:37%;animation-delay:-1.5s}
+    .screen { display: none; min-height: 100svh; position: relative; padding: 45px 20px 60px; overflow: hidden; }
+    .screen.active { display: grid; place-items: center; animation: arrive .75s cubic-bezier(.2,.75,.25,1) both; }
+    .confirm-card { width: min(100%, 560px); padding: clamp(30px,6vw,54px); position: relative; z-index: 1; border: 1px solid rgba(255,255,255,.9); border-radius: 32px; background: rgba(255,255,255,.82); box-shadow: var(--shadow); text-align: center; }
+    .confirm-card .eyebrow { justify-content: center; }
+    .confirm-animals { display: flex; justify-content: center; align-items: center; gap: 15px; margin: 9px 0 18px; font-size: 40px; }
+    .confirm-animals span { display: inline-block; animation: drift 2.8s ease-in-out infinite; }
+    .confirm-animals span:nth-child(2) { animation-delay: -.8s; }
+    .confirm-animals span:nth-child(3) { animation-delay: -1.4s; }
+    .confirm-card h1 { margin: 0 0 14px; font: 500 clamp(38px,7vw,58px)/1.05 Georgia, "Times New Roman", serif; letter-spacing: -.04em; }
+    .confirm-card p { max-width: 390px; margin: 0 auto 25px; color: var(--muted); font-size: 15px; line-height: 1.65; }
+    .celebration { width: min(100%, 780px); padding: clamp(28px,5vw,48px); position: relative; z-index: 1; border: 1px solid rgba(255,255,255,.9); border-radius: 34px; background: linear-gradient(145deg,rgba(255,252,247,.96),rgba(255,245,250,.95)); box-shadow: 0 28px 80px rgba(81,52,89,.16); text-align: center; }
+    .music-toggle { position: absolute; z-index: 3; top: 18px; right: 18px; display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid #f0d5df; border-radius: 50%; color: #fff; background: linear-gradient(145deg,#ee7596,#c875c0); box-shadow: 0 7px 18px rgba(192,91,140,.25); font-size: 20px; cursor: pointer; transition: transform .2s, filter .2s; }
+    .music-toggle:hover { transform: translateY(-2px); filter: saturate(1.12); }
+    .music-toggle.muted { color: #8c7a91; background: #fff; box-shadow: 0 4px 12px rgba(90,65,100,.1); }
+    .celebration .eyebrow { justify-content: center; padding: 8px 14px; border: 1px solid #f5dfe2; border-radius: 30px; color: #a95672; background: #fff5ed; }
+    .celebration h1 { margin: 18px 0 15px; color: #332a45; font: 500 clamp(40px,6.4vw,68px)/.99 Georgia, "Times New Roman", serif; letter-spacing: -.05em; }
+    .celebration h1 span { display: block; margin-top: 4px; color: #cf4e79; }
+    .celebration-message { width: min(100%, 620px); margin: 0 auto 24px; color: #5e536c; font-size: 15px; line-height: 1.65; }
+    .celebration-message p { margin: 0 0 8px; }
+    .celebration-message p:not(:first-child)::before { content: "✦"; display: block; margin: 5px 0 3px; color: #e68a9f; font-size: 12px; }
+    .celebration-message p:last-child { margin-bottom: 0; }
+    .photo-card { width: min(100%, 320px); aspect-ratio: 3/4; margin: 0 auto; position: relative; overflow: hidden; border: 6px solid rgba(255,255,255,.96); border-radius: 24px; background: #f4dce5; box-shadow: 0 20px 48px rgba(89,64,111,.2),0 0 0 4px rgba(233,166,191,.22); animation: portrait-float 5s ease-in-out infinite; }
+    .photo-card img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+    .photo-card::after { content: ""; position: absolute; inset: 52% 0 0; background: linear-gradient(transparent,rgba(42,28,48,.58)); pointer-events: none; }
+    .photo-heart { position: absolute; z-index: 1; top: 13px; right: 16px; color: #fff; font-size: 27px; line-height: 1; text-shadow: 0 2px 9px #3023338a; animation: heartbeat 1.5s ease-in-out infinite; }
+    .photo-caption { position: absolute; z-index: 1; right: 12px; bottom: 14px; left: 12px; color: #fff; font: 19px Georgia, "Times New Roman", serif; text-shadow: 0 2px 8px #302333; }
+    .side-animal { position: absolute; z-index: 2; display: grid; place-items: center; width: 52px; aspect-ratio: 1; border: 1px solid rgba(255,255,255,.9); border-radius: 50%; background: linear-gradient(145deg,#fff3dc,#ffe0eb); box-shadow: 0 8px 18px rgba(103,72,113,.16); font-size: 31px; filter: saturate(1.2); animation: drift 3.2s ease-in-out infinite; }
+    .side-animal.left { left: max(calc(50% - 400px), 1%); top: 48%; transform: rotate(-8deg); }.side-animal.right { right: max(calc(50% - 400px), 1%); top: 42%; animation-delay: -.8s; }
+    .side-animal.fox { left: 13%; top: 65%; font-size: 48px; animation-delay: -1.4s; }
+    .side-animal.chick { right: 13%; top: 63%; font-size: 42px; animation-delay: -.5s; }
+    .side-animal.cat { left: 8%; top: 31%; font-size: 43px; animation-delay: -2s; }
+    .side-animal.panda { right: 8%; top: 29%; font-size: 45px; animation-delay: -1s; }
+    .side-animal.dog { left: 23%; top: 77%; font-size: 39px; animation-delay: -2.4s; }
+    .floating-heart { position: fixed; bottom: -40px; z-index: 0; color: #e7789a; opacity: .63; pointer-events: none; animation: float-up linear forwards; }
+    .confetti { position: fixed; top: -15px; z-index: 3; width: 8px; height: 12px; pointer-events: none; animation: confetti-fall linear forwards; }
+    .again-btn { margin: 22px auto 0; border: 1px solid #e8d7e4; border-radius: 30px; padding: 11px 19px; color: #75617b; background: rgba(255,255,255,.88); box-shadow: 0 5px 14px rgba(85,56,88,.08); cursor: pointer; font-size: 13px; transition: transform .2s, background .2s; }
+    .again-btn:hover { transform: translateY(-2px); background: white; }
+    @keyframes arrive { from { opacity: 0; transform: translateY(17px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    @keyframes cake-bob { 0%,100% { transform: translateY(-50%) rotate(-1deg); } 50% { transform: translateY(calc(-50% - 9px)) rotate(1deg); } }
+    @keyframes flicker { from { transform: rotate(42deg) scale(.93); } to { transform: rotate(48deg) scale(1.08); } }
+    @keyframes drift { 0%,100% { translate: 0 0; } 50% { translate: 0 -10px; } }
+    @keyframes twinkle { 0%,100% { opacity:.4; transform:scale(.8) rotate(0); } 50% { opacity:1; transform:scale(1.2) rotate(25deg); } }
+    @keyframes portrait-float { 0%,100% { transform: translateY(0) rotate(-.5deg); } 50% { transform: translateY(-7px) rotate(.5deg); } }
+    @keyframes heartbeat { 0%,100% { transform: scale(1); } 12% { transform: scale(1.16); } 24% { transform: scale(1); } 36% { transform: scale(1.12); } }
+    @keyframes float-up { to { transform: translateY(-115vh) rotate(25deg); opacity: 0; } }
+    @keyframes confetti-fall { to { transform: translate3d(var(--sway),110vh,0) rotate(760deg); opacity: .7; } }
+    @media (max-width: 700px) {
+      .page { padding: 18px 13px; }
+      .entry-card { grid-template-columns: 1fr; min-height: 0; border-radius: 26px; }
+      .entry-copy { width: 100%; position: relative; z-index: 2; padding: 37px 27px 30px; }
+      .entry-copy h1 { font-size: clamp(43px, 12vw, 58px); }
+      .intro { margin-bottom: 23px; }
+      .entry-art { position: absolute; z-index: 0; inset: 0; min-height: 0; display: block; overflow: hidden; opacity: .72; pointer-events: none; }
+      .art-glow { width: 215px; top: 58%; right: -18px; left: auto; transform: translateY(-50%); }
+      .cake { position: absolute; top: 52%; right: -38px; left: auto; margin: 0; transform-origin: center center; animation: cake-bob-mobile 3.8s ease-in-out infinite; }
+      .orbit.bunny { left: 13%; bottom: 14%; }.orbit.bear { right: 13%; bottom: 14%; }.orbit.bird { left: 17%; top: 15%; }.orbit.heart { right: 17%; top: 18%; }
+      .art-note { top: 19px; right: 18px; font-size: 12px; }
+      .screen { padding: 24px 14px 34px; }
+      .confirm-card { padding: 34px 24px; border-radius: 26px; }
+      .confirm-card p { font-size: 14px; }
+      .celebration { padding: 27px 20px 30px; border-radius: 27px; }
+      .music-toggle { top: 12px; right: 12px; width: 38px; height: 38px; }
+      .celebration h1 { margin: 15px 0 13px; font-size: clamp(37px, 9.5vw, 48px); line-height: 1.02; }
+      .celebration-message { max-width: 430px; margin-bottom: 20px; font-size: 14px; line-height: 1.6; }
+      .photo-card { width: min(100%, 275px); border-width: 5px; border-radius: 20px; }
+      .photo-caption { font-size: 17px; }
+      .side-animal { width: 40px; font-size: 25px; }
+      .side-animal.left { left: 3%; top: auto; bottom: 11%; }.side-animal.right { right: 3%; top: auto; bottom: 11%; }
+      .side-animal.fox { left: 4%; top: 48%; font-size: 30px; }
+      .side-animal.chick { right: 4%; top: 48%; font-size: 29px; }
+      .side-animal.cat, .side-animal.panda, .side-animal.dog { display: none; }
+    }
+    @media (max-width: 370px) {
+      .entry-copy { padding-right: 21px; padding-left: 21px; }
+      .entry-copy h1 { font-size: 41px; }
+      .date-row { gap: 6px; }
+      .date-input { padding-right: 6px; padding-left: 7px; font-size: 13px; }
+      .screen { padding-right: 12px; padding-left: 12px; }
+      .celebration { padding: 24px 16px 27px; }
+      .celebration-message { font-size: 13px; }
+    }
+    @keyframes cake-bob-mobile { 0%,100% { transform: scale(.68) translateY(0) rotate(-1deg); } 50% { transform: scale(.68) translateY(-8px) rotate(1deg); } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <div class="ambient one" aria-hidden="true"></div><div class="ambient two" aria-hidden="true"></div>
+  <main>
+    <section class="page" id="welcomeScreen" aria-labelledby="welcomeTitle">
+      <div class="entry-card">
+        <div class="entry-copy">
+          <div class="eyebrow">маленькое чудо</div>
+          <h1 id="welcomeTitle">Угадай, что <em>тебя</em> ждёт?</h1>
+          <p class="intro">Ответь на один очень важный вопрос — и мы откроем для тебя кое-что особенное.</p>
+          <form class="birthday-form" id="birthdayForm" novalidate>
+            <label class="field-label" for="personName">Как тебя зовут?</label>
+            <input class="name-input" id="personName" name="name" autocomplete="given-name" maxlength="32" placeholder="Твоё имя" required>
+            <label class="field-label date-label" for="birthDay">Когда твой день рождения?</label>
+            <div class="date-row">
+              <input class="date-input" id="birthDay" name="day" inputmode="numeric" type="number" min="1" max="31" placeholder="День" aria-label="День рождения" required>
+              <select class="date-input" id="birthMonth" name="month" aria-label="Месяц рождения" required>
+                <option value="" selected disabled>Месяц</option>
+                <option value="1">Январь</option><option value="2">Февраль</option><option value="3">Март</option><option value="4">Апрель</option>
+                <option value="5">Май</option><option value="6">Июнь</option><option value="7">Июль</option><option value="8">Август</option>
+                <option value="9">Сентябрь</option><option value="10">Октябрь</option><option value="11">Ноябрь</option><option value="12">Декабрь</option>
+              </select>
+              <input class="date-input" id="birthYear" name="year" inputmode="numeric" type="number" min="1900" max="2026" placeholder="Год" aria-label="Год рождения" required>
+            </div>
+            <p class="form-error" id="formError" aria-live="polite"></p>
+            <button class="primary-btn" type="submit">Дальше <span aria-hidden="true">✦</span></button>
+            <p class="privacy-note">Это маленький секрет только для тебя ♡</p>
+          </form>
+        </div>
+        <div class="entry-art" aria-hidden="true">
+          <div class="art-glow"></div><div class="art-note">для самого любимого человека</div>
+          <span class="orbit bunny">🐰</span><span class="orbit bear">🐻</span><span class="orbit bird">🐥</span><span class="orbit heart">♥</span>
+          <span class="sprinkle s1">✦</span><span class="sprinkle s2">✧</span><span class="sprinkle s3">✦</span><span class="sprinkle s4">✧</span>
+          <div class="cake"><div class="flame"></div><div class="candle"></div><div class="icing"></div><div class="cake-top"></div><div class="berry b1"></div><div class="berry b2"></div><div class="berry b3"></div><div class="cake-base"></div><div class="cake-plate"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="confirmScreen" aria-labelledby="confirmTitle" aria-hidden="true">
+      <div class="confirm-card">
+        <div class="eyebrow">последняя проверка</div>
+        <div class="confirm-animals" aria-hidden="true"><span>🐰</span><span>🐥</span><span>🐻</span></div>
+        <h1 id="confirmTitle">Ты точно Мақпал?</h1>
+        <p>Если это ты, нажимай «Дальше» — для тебя уже приготовлено особенное поздравление ♡</p>
+        <button class="primary-btn" id="confirmNextButton" type="button">Дальше <span aria-hidden="true">✦</span></button>
+      </div>
+    </section>
+
+    <section class="screen" id="greetingScreen" aria-labelledby="greetingTitle" aria-hidden="true">
+      <span class="side-animal left" aria-hidden="true">🐰</span>
+      <span class="side-animal right" aria-hidden="true">🐻</span>
+      <span class="side-animal fox" aria-hidden="true">🦊</span>
+      <span class="side-animal chick" aria-hidden="true">🐥</span>
+      <span class="side-animal cat" aria-hidden="true">🐱</span>
+      <span class="side-animal panda" aria-hidden="true">🐼</span>
+      <span class="side-animal dog" aria-hidden="true">🐶</span>
+      <div class="celebration">
+        <button class="music-toggle" id="musicToggle" type="button" aria-label="Выключить музыку" title="Выключить музыку">♫</button>
+        <div class="eyebrow">сегодня твой день</div>
+        <h1 id="greetingTitle">С днём рождения,<span id="greetingName">солнышко</span></h1>
+        <div class="celebration-message">
+          <p>Мақпал, с днём рождения! Желаю тебе крепкого здоровья, душевного тепла, вдохновения и радостных встреч. Пусть рядом всегда будут люди, которые любят, ценят и поддерживают тебя.</p>
+          <p>Пусть мечты смело превращаются в планы, а планы — в счастливые события. Желаю побольше поводов улыбаться, приятных сюрпризов и дней, к которым хочется возвращаться.</p>
+          <p>Оставайся такой же доброй, яркой и неповторимой. Пусть новый год жизни принесёт тебе любовь, удачу и много счастливых мгновений. Ты заслуживаешь самого прекрасного! ♡</p>
+        </div>
+        <figure class="photo-card">
+          <img src="WhatsApp%20Image%202026-11-21%20at%2022.29.09.jpeg" alt="Портрет Мақпал">
+          <span class="photo-heart" aria-hidden="true">♥</span>
+          <figcaption class="photo-caption">Самой прекрасной Мақпал ♡</figcaption>
+        </figure>
+        <button class="again-btn" id="againButton" type="button">↶ Начать сначала</button>
+      </div>
+    </section>
+  </main>
+  <script>
+    (() => {
+      const form = document.getElementById('birthdayForm');
+      const nameField = document.getElementById('personName');
+      const dayField = document.getElementById('birthDay');
+      const monthField = document.getElementById('birthMonth');
+      const yearField = document.getElementById('birthYear');
+      const error = document.getElementById('formError');
+      const welcome = document.getElementById('welcomeScreen');
+      const confirmScreen = document.getElementById('confirmScreen');
+      const greeting = document.getElementById('greetingScreen');
+      const greetingName = document.getElementById('greetingName');
+      const musicToggle = document.getElementById('musicToggle');
+      let heartsTimer;
+      let verifiedName = '';
+      let audioContext;
+      let musicGain;
+      let musicTimer;
+      let musicEnabled = false;
+      let melodyStep = 0;
+      const melody = [523.25,659.25,783.99,659.25,587.33,698.46,880,783.99,659.25,783.99,1046.5,987.77,880,783.99,587.33,523.25];
+      const bassNotes = [130.81,174.61,196,146.83];
+      yearField.max = String(new Date().getFullYear());
+
+      const safeName = (value) => value.trim().replace(/\s+/g, ' ');
+      function validBirthday(day, month, year) {
+        const now = new Date();
+        if (!Number.isInteger(day) || !Number.isInteger(month) || !Number.isInteger(year)) return false;
+        if (year < 1900 || year > now.getFullYear() || month < 1 || month > 12) return false;
+        const maxDay = new Date(year, month, 0).getDate();
+        if (day < 1 || day > maxDay) return false;
+        return new Date(year, month - 1, day) <= now;
+      }
+      function makeConfetti() {
+        const colors = ['#ee7897', '#ffd178', '#b29ce8', '#8fc9bd', '#f6a66f', '#fff'];
+        for (let i = 0; i < 100; i++) {
+          const bit = document.createElement('i');
+          bit.className = 'confetti';
+          bit.style.left = Math.random() * 100 + 'vw';
+          bit.style.background = colors[i % colors.length];
+          bit.style.borderRadius = Math.random() > .5 ? '50%' : '2px';
+          bit.style.setProperty('--sway', (Math.random() * 190 - 95) + 'px');
+          bit.style.animationDuration = (3 + Math.random() * 3) + 's';
+          bit.style.animationDelay = (Math.random() * .85) + 's';
+          document.body.appendChild(bit);
+          setTimeout(() => bit.remove(), 7000);
+        }
+      }
+      function makeHeart() {
+        if (!greeting.classList.contains('active')) return;
+        const heart = document.createElement('span');
+        heart.className = 'floating-heart';
+        heart.textContent = Math.random() > .28 ? '♥' : '♡';
+        heart.style.left = Math.random() * 96 + 'vw';
+        heart.style.fontSize = (12 + Math.random() * 19) + 'px';
+        heart.style.animationDuration = (7 + Math.random() * 6) + 's';
+        document.body.appendChild(heart);
+        setTimeout(() => heart.remove(), 14000);
+      }
+      function updateMusicToggle() {
+        musicToggle.classList.toggle('muted', !musicEnabled);
+        musicToggle.textContent = musicEnabled ? '♫' : '♪';
+        musicToggle.setAttribute('aria-label', musicEnabled ? 'Выключить музыку' : 'Включить музыку');
+        musicToggle.title = musicEnabled ? 'Выключить музыку' : 'Включить музыку';
+        musicToggle.setAttribute('aria-pressed', String(musicEnabled));
+      }
+      function playTone(frequency, startAt, duration, volume, type = 'sine') {
+        const oscillator = audioContext.createOscillator();
+        const envelope = audioContext.createGain();
+        oscillator.type = type;
+        oscillator.frequency.setValueAtTime(frequency, startAt);
+        envelope.gain.setValueAtTime(.0001, startAt);
+        envelope.gain.exponentialRampToValueAtTime(volume, startAt + .035);
+        envelope.gain.exponentialRampToValueAtTime(.0001, startAt + duration);
+        oscillator.connect(envelope);
+        envelope.connect(musicGain);
+        oscillator.start(startAt);
+        oscillator.stop(startAt + duration + .04);
+      }
+      function playMelodyStep() {
+        if (!musicEnabled || !greeting.classList.contains('active')) return;
+        const beat = .48;
+        const now = audioContext.currentTime + .025;
+        const note = melody[melodyStep];
+        playTone(note, now, beat * .82, .105, 'sine');
+        playTone(note * 2, now, beat * .34, .026, 'triangle');
+        if (melodyStep % 4 === 0) {
+          const bass = bassNotes[(melodyStep / 4) % bassNotes.length];
+          playTone(bass, now, beat * 3.6, .055, 'sine');
+          playTone(bass * 1.5, now, beat * 1.8, .018, 'triangle');
+        }
+        melodyStep = (melodyStep + 1) % melody.length;
+        musicTimer = setTimeout(playMelodyStep, beat * 1000);
+      }
+      async function startBirthdayMusic() {
+        try {
+          const AudioContextType = window.AudioContext || window.webkitAudioContext;
+          if (!AudioContextType) return;
+          if (!audioContext) {
+            audioContext = new AudioContextType();
+            musicGain = audioContext.createGain();
+            musicGain.gain.value = 0;
+            musicGain.connect(audioContext.destination);
+          }
+          await audioContext.resume();
+          const now = audioContext.currentTime;
+          musicGain.gain.cancelScheduledValues(now);
+          musicGain.gain.setTargetAtTime(.42, now, .12);
+          musicEnabled = true;
+          melodyStep = 0;
+          updateMusicToggle();
+          clearTimeout(musicTimer);
+          playMelodyStep();
+        } catch {
+          musicEnabled = false;
+          updateMusicToggle();
+        }
+      }
+      function stopBirthdayMusic() {
+        musicEnabled = false;
+        clearTimeout(musicTimer);
+        if (audioContext && musicGain) {
+          const now = audioContext.currentTime;
+          musicGain.gain.cancelScheduledValues(now);
+          musicGain.gain.setTargetAtTime(0, now, .08);
+        }
+        updateMusicToggle();
+      }
+      function showConfirmation() {
+        welcome.hidden = true;
+        confirmScreen.classList.add('active');
+        confirmScreen.setAttribute('aria-hidden', 'false');
+        confirmScreen.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      function showGreeting(name) {
+        greetingName.textContent = name || 'солнышко';
+        welcome.hidden = true;
+        confirmScreen.classList.remove('active');
+        confirmScreen.setAttribute('aria-hidden', 'true');
+        greeting.classList.add('active');
+        greeting.setAttribute('aria-hidden', 'false');
+        greeting.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        makeConfetti();
+        clearInterval(heartsTimer);
+        heartsTimer = setInterval(makeHeart, 650);
+        startBirthdayMusic();
+      }
+      function showWelcome() {
+        greeting.classList.remove('active');
+        greeting.setAttribute('aria-hidden', 'true');
+        confirmScreen.classList.remove('active');
+        confirmScreen.setAttribute('aria-hidden', 'true');
+        welcome.hidden = false;
+        welcome.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        clearInterval(heartsTimer);
+        stopBirthdayMusic();
+        document.querySelectorAll('.floating-heart').forEach((el) => el.remove());
+      }
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const name = safeName(nameField.value);
+        const day = Number(dayField.value);
+        const month = Number(monthField.value);
+        const year = Number(yearField.value);
+        if (!name) { error.textContent = 'Напиши своё имя, пожалуйста.'; nameField.focus(); return; }
+        if (name !== 'Мақпал' || day !== 22 || month !== 11 || year !== 2007) {
+          error.textContent = 'Кажется, это не тот ответ. Попробуй ещё раз ♡';
+          return;
+        }
+        if (!validBirthday(day, month, year)) { error.textContent = 'Проверь дату: кажется, в ней закралась ошибка.'; dayField.focus(); return; }
+        error.textContent = '';
+        verifiedName = name;
+        showConfirmation();
+      });
+      document.getElementById('confirmNextButton').addEventListener('click', () => showGreeting(verifiedName));
+      musicToggle.addEventListener('click', () => musicEnabled ? stopBirthdayMusic() : startBirthdayMusic());
+      document.getElementById('againButton').addEventListener('click', showWelcome);
+    })();
+  </script>
+</body>
+</html>
