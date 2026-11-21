@@ -222,7 +222,8 @@
       <span class="side-animal panda" aria-hidden="true">🐼</span>
       <span class="side-animal dog" aria-hidden="true">🐶</span>
       <div class="celebration">
-        <button class="music-toggle" id="musicToggle" type="button" aria-label="Выключить музыку" title="Выключить музыку">♫</button>
+        <audio id="birthdayMusic" src="audio/birthday-piano.mp3" preload="metadata" loop></audio>
+        <button class="music-toggle muted" id="musicToggle" type="button" aria-label="Включить музыку" aria-pressed="false" title="Включить музыку">♪</button>
         <div class="eyebrow">сегодня твой день</div>
         <h1 id="greetingTitle">С днём рождения,<span id="greetingName">солнышко</span></h1>
         <div class="celebration-message">
@@ -251,16 +252,11 @@
       const confirmScreen = document.getElementById('confirmScreen');
       const greeting = document.getElementById('greetingScreen');
       const greetingName = document.getElementById('greetingName');
+      const birthdayMusic = document.getElementById('birthdayMusic');
       const musicToggle = document.getElementById('musicToggle');
       let heartsTimer;
       let verifiedName = '';
-      let audioContext;
-      let musicGain;
-      let musicTimer;
-      let musicEnabled = false;
-      let melodyStep = 0;
-      const melody = [523.25,659.25,783.99,659.25,587.33,698.46,880,783.99,659.25,783.99,1046.5,987.77,880,783.99,587.33,523.25];
-      const bassNotes = [130.81,174.61,196,146.83];
+      birthdayMusic.volume = 0.75;
       yearField.max = String(new Date().getFullYear());
 
       const safeName = (value) => value.trim().replace(/\s+/g, ' ');
@@ -299,73 +295,16 @@
         setTimeout(() => heart.remove(), 14000);
       }
       function updateMusicToggle() {
-        musicToggle.classList.toggle('muted', !musicEnabled);
-        musicToggle.textContent = musicEnabled ? '♫' : '♪';
-        musicToggle.setAttribute('aria-label', musicEnabled ? 'Выключить музыку' : 'Включить музыку');
-        musicToggle.title = musicEnabled ? 'Выключить музыку' : 'Включить музыку';
-        musicToggle.setAttribute('aria-pressed', String(musicEnabled));
+        const playing = !birthdayMusic.paused && !birthdayMusic.error;
+        const label = playing ? 'Выключить музыку' : 'Включить музыку';
+        musicToggle.classList.toggle('muted', !playing);
+        musicToggle.textContent = playing ? '♫' : '♪';
+        musicToggle.setAttribute('aria-label', label);
+        musicToggle.setAttribute('aria-pressed', String(playing));
+        musicToggle.title = label;
       }
-      function playTone(frequency, startAt, duration, volume, type = 'sine') {
-        const oscillator = audioContext.createOscillator();
-        const envelope = audioContext.createGain();
-        oscillator.type = type;
-        oscillator.frequency.setValueAtTime(frequency, startAt);
-        envelope.gain.setValueAtTime(.0001, startAt);
-        envelope.gain.exponentialRampToValueAtTime(volume, startAt + .035);
-        envelope.gain.exponentialRampToValueAtTime(.0001, startAt + duration);
-        oscillator.connect(envelope);
-        envelope.connect(musicGain);
-        oscillator.start(startAt);
-        oscillator.stop(startAt + duration + .04);
-      }
-      function playMelodyStep() {
-        if (!musicEnabled || !greeting.classList.contains('active')) return;
-        const beat = .48;
-        const now = audioContext.currentTime + .025;
-        const note = melody[melodyStep];
-        playTone(note, now, beat * .82, .105, 'sine');
-        playTone(note * 2, now, beat * .34, .026, 'triangle');
-        if (melodyStep % 4 === 0) {
-          const bass = bassNotes[(melodyStep / 4) % bassNotes.length];
-          playTone(bass, now, beat * 3.6, .055, 'sine');
-          playTone(bass * 1.5, now, beat * 1.8, .018, 'triangle');
-        }
-        melodyStep = (melodyStep + 1) % melody.length;
-        musicTimer = setTimeout(playMelodyStep, beat * 1000);
-      }
-      async function startBirthdayMusic() {
-        try {
-          const AudioContextType = window.AudioContext || window.webkitAudioContext;
-          if (!AudioContextType) return;
-          if (!audioContext) {
-            audioContext = new AudioContextType();
-            musicGain = audioContext.createGain();
-            musicGain.gain.value = 0;
-            musicGain.connect(audioContext.destination);
-          }
-          await audioContext.resume();
-          const now = audioContext.currentTime;
-          musicGain.gain.cancelScheduledValues(now);
-          musicGain.gain.setTargetAtTime(.42, now, .12);
-          musicEnabled = true;
-          melodyStep = 0;
-          updateMusicToggle();
-          clearTimeout(musicTimer);
-          playMelodyStep();
-        } catch {
-          musicEnabled = false;
-          updateMusicToggle();
-        }
-      }
-      function stopBirthdayMusic() {
-        musicEnabled = false;
-        clearTimeout(musicTimer);
-        if (audioContext && musicGain) {
-          const now = audioContext.currentTime;
-          musicGain.gain.cancelScheduledValues(now);
-          musicGain.gain.setTargetAtTime(0, now, .08);
-        }
-        updateMusicToggle();
+      function startBirthdayMusic() {
+        birthdayMusic.play().catch(updateMusicToggle);
       }
       function showConfirmation() {
         welcome.hidden = true;
@@ -394,7 +333,8 @@
         welcome.hidden = false;
         welcome.scrollIntoView({ behavior: 'smooth', block: 'start' });
         clearInterval(heartsTimer);
-        stopBirthdayMusic();
+        birthdayMusic.pause();
+        birthdayMusic.currentTime = 0;
         document.querySelectorAll('.floating-heart').forEach((el) => el.remove());
       }
       form.addEventListener('submit', (event) => {
@@ -414,7 +354,13 @@
         showConfirmation();
       });
       document.getElementById('confirmNextButton').addEventListener('click', () => showGreeting(verifiedName));
-      musicToggle.addEventListener('click', () => musicEnabled ? stopBirthdayMusic() : startBirthdayMusic());
+      birthdayMusic.addEventListener('play', updateMusicToggle);
+      birthdayMusic.addEventListener('pause', updateMusicToggle);
+      birthdayMusic.addEventListener('error', updateMusicToggle);
+      musicToggle.addEventListener('click', () => {
+        if (birthdayMusic.paused) startBirthdayMusic();
+        else birthdayMusic.pause();
+      });
       document.getElementById('againButton').addEventListener('click', showWelcome);
     })();
   </script>
